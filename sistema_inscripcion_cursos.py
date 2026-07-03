@@ -12,9 +12,10 @@ persistan entre ejecuciones del programa.
 
 import json
 import os
+import sys
 import re
 
-ARCHIVO_DATOS = "datos_sistema.json"
+RUTA_ARCHIVO_DATOS = "datos_sistema.json"
 
 # ---------------------------------------------------------------------
 # Estructuras de datos principales (se cargan/guardan en el JSON)
@@ -46,13 +47,14 @@ cursos = {}
 def cargar_datos():
     """Carga estudiantes y cursos desde el archivo JSON, si existe."""
     global estudiantes, cursos
-    if os.path.exists(ARCHIVO_DATOS):
+    # NOTE: no hace falta verificar la existencia del archivo dos veces con if y luego con el try-except.
+    if os.path.exists(RUTA_ARCHIVO_DATOS):
         try:
-            with open(ARCHIVO_DATOS, "r", encoding="utf-8") as archivo:
+            with open(RUTA_ARCHIVO_DATOS, "r", encoding="utf-8") as archivo:
                 datos = json.load(archivo)
                 estudiantes = datos.get("estudiantes", {})
                 cursos = datos.get("cursos", {})
-            print("Datos cargados correctamente desde", ARCHIVO_DATOS)
+            print("Datos cargados correctamente desde", RUTA_ARCHIVO_DATOS)
         except (json.JSONDecodeError, OSError) as error:
             print("Aviso: no se pudieron leer los datos guardados "
                   f"({error}). Se inicia con datos vacíos.")
@@ -66,7 +68,7 @@ def cargar_datos():
 def guardar_datos():
     """Guarda estudiantes y cursos en el archivo JSON."""
     try:
-        with open(ARCHIVO_DATOS, "w", encoding="utf-8") as archivo:
+        with open(RUTA_ARCHIVO_DATOS, "w", encoding="utf-8") as archivo:
             json.dump({"estudiantes": estudiantes, "cursos": cursos},
                       archivo, ensure_ascii=False, indent=4)
     except OSError as error:
@@ -79,11 +81,13 @@ def guardar_datos():
 
 def validar_dni(dni):
     """Un DNI válido: solo dígitos, entre 7 y 8 caracteres."""
+    # NOTE: isdigit() es inseguro para comprobar el dni, se debe usar isdecimal(). Se debe intentar convertirlo a int con try-except
     return dni.isdigit() and 7 <= len(dni) <= 8
 
 
 def validar_email(email):
     """Validación básica de formato de email con expresión regular."""
+    # NOTE: expresión regular? 
     patron = r"^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$"
     return re.match(patron, email) is not None
 
@@ -404,9 +408,39 @@ def mostrar_estadisticas():
 # =======================================================================
 # MENÚ PRINCIPAL
 # =======================================================================
+def limpiar_pantalla():
+  """
+  Limpia la terminal
+  """
+  
+  try:
+    comando = "cls" if os.name == "nt" else "clear"
+    resultado = os.system(comando)
+    
+    if resultado != 0:
+      raise RuntimeError("Comando no disponible")
+  except Exception:
+    sys.stdout.write("\033[H\033[2J")
+    sys.stdout.flush()
+
+def leer_confirmacion(etiqueta : str) -> bool:
+  """
+  Espera una confirmación del usuario.
+  """
+  while True:
+    entrada = input(f"{etiqueta} (S, n): ").strip().lower()
+    
+    if entrada in ["s", "n", ""]:
+      return entrada != "n"
+
+def salir():
+    guardar_datos()
+    print("INFO: Datos guardados. Saliendo del programa...")
 
 def mostrar_menu():
-    print("\n" + "=" * 45)
+    """Imprime en pantalla las operaciones disponibles."""
+    limpiar_pantalla()
+    print("=" * 45)
     print(" SISTEMA DE INSCRIPCIÓN A CURSOS Y TALLERES")
     print("=" * 45)
     print("1. Registrar estudiante")
@@ -421,12 +455,12 @@ def mostrar_menu():
     print("0. Salir")
     print("=" * 45)
 
-
-def main():
-    """Función principal: bucle del menú con manejo de errores."""
-    cargar_datos()
-
-    opciones = {
+def ejecutar_operacion(opcion):
+    """Ejecuta una operación del sistema según la opción."""
+    
+    # Simular un match o switch para las versiones de python<=3.9
+    operaciones = {
+        "0": salir,
         "1": registrar_estudiante,
         "2": listar_estudiantes,
         "3": buscar_estudiante_interactivo,
@@ -435,27 +469,27 @@ def main():
         "6": inscribir_estudiante,
         "7": dar_baja_inscripcion,
         "8": ver_lista_espera,
-        "9": mostrar_estadisticas,
+        "9": mostrar_estadisticas
     }
+    
+    if not opcion in operaciones:
+        print("ADVERTENCIA: Opción inválida. Por favor ingrese un número del menú.")
+    
+    operaciones[opcion]()
 
-    continuar = True
-    while continuar:
+
+def main():
+    """Función principal: bucle del menú con manejo de errores."""
+    cargar_datos()
+    
+    while True:
         mostrar_menu()
         opcion = input("Seleccione una opción: ").strip()
-
+        ejecutar_operacion(opcion)
+        
+        # Salir del programa
         if opcion == "0":
-            guardar_datos()
-            print("Datos guardados. ¡Hasta luego!")
-            continuar = False
-        elif opcion in opciones:
-            try:
-                opciones[opcion]()
-            except Exception as error:
-                # Manejo genérico de errores inesperados para que el
-                # programa nunca se cierre de forma abrupta.
-                print(f"Ocurrió un error inesperado: {error}")
-        else:
-            print("Opción inválida. Por favor ingrese un número del menú.")
+            break
 
 
 if __name__ == "__main__":

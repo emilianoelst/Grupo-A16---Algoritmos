@@ -351,4 +351,112 @@ def ver_lista_espera():
         print(f"  {posicion}. {nombre} (DNI: {dni})")
 
 
+# =======================================================================
+# ESTADÍSTICAS
+# =======================================================================
 
+def mostrar_estadisticas():
+    """Calcula y muestra estadísticas generales del sistema usando
+    acumuladores y contadores."""
+    print("\n--- Estadísticas del Sistema ---")
+
+    if not cursos:
+        print("No hay cursos registrados todavía.")
+        return
+
+    total_cursos = 0
+    total_inscriptos = 0          # acumulador de inscripciones totales
+    total_en_espera = 0           # acumulador de gente en espera
+    cursos_llenos = 0             # contador de cursos con cupo lleno
+    curso_mas_demandado = None
+    max_demanda = -1
+
+    for codigo, curso in cursos.items():
+        total_cursos += 1
+        cantidad_inscriptos = len(curso["inscriptos"])
+        cantidad_espera = len(curso["espera"])
+
+        total_inscriptos += cantidad_inscriptos
+        total_en_espera += cantidad_espera
+
+        if cantidad_inscriptos >= curso["cupo"]:
+            cursos_llenos += 1
+
+        # La demanda se mide como inscriptos + gente en espera
+        demanda = cantidad_inscriptos + cantidad_espera
+        if demanda > max_demanda:
+            max_demanda = demanda
+            curso_mas_demandado = curso["nombre"]
+
+    promedio_ocupacion = (total_inscriptos / total_cursos) if total_cursos else 0
+
+    print(f"Total de cursos registrados: {total_cursos}")
+    print(f"Total de estudiantes registrados: {len(estudiantes)}")
+    print(f"Total de inscripciones activas: {total_inscriptos}")
+    print(f"Total de estudiantes en listas de espera: {total_en_espera}")
+    print(f"Cursos con cupo completo: {cursos_llenos}")
+    print(f"Promedio de inscriptos por curso: {promedio_ocupacion:.2f}")
+    if curso_mas_demandado is not None and max_demanda > 0:
+        print(f"Curso con mayor demanda: '{curso_mas_demandado}' "
+              f"({max_demanda} personas entre inscriptos y en espera)")
+
+
+# =======================================================================
+# MENÚ PRINCIPAL
+# =======================================================================
+
+def mostrar_menu():
+    print("\n" + "=" * 45)
+    print(" SISTEMA DE INSCRIPCIÓN A CURSOS Y TALLERES")
+    print("=" * 45)
+    print("1. Registrar estudiante")
+    print("2. Listar estudiantes")
+    print("3. Buscar estudiante")
+    print("4. Registrar curso")
+    print("5. Listar cursos y cupos")
+    print("6. Inscribir estudiante a curso")
+    print("7. Dar de baja una inscripción")
+    print("8. Ver lista de espera de un curso")
+    print("9. Ver estadísticas")
+    print("0. Salir")
+    print("=" * 45)
+
+
+def main():
+    """Función principal: bucle del menú con manejo de errores."""
+    cargar_datos()
+
+    opciones = {
+        "1": registrar_estudiante,
+        "2": listar_estudiantes,
+        "3": buscar_estudiante_interactivo,
+        "4": registrar_curso,
+        "5": listar_cursos,
+        "6": inscribir_estudiante,
+        "7": dar_baja_inscripcion,
+        "8": ver_lista_espera,
+        "9": mostrar_estadisticas,
+    }
+
+    continuar = True
+    while continuar:
+        mostrar_menu()
+        opcion = input("Seleccione una opción: ").strip()
+
+        if opcion == "0":
+            guardar_datos()
+            print("Datos guardados. ¡Hasta luego!")
+            continuar = False
+        elif opcion in opciones:
+            try:
+                opciones[opcion]()
+            except Exception as error:
+                # Manejo genérico de errores inesperados para que el
+                # programa nunca se cierre de forma abrupta.
+                print(f"Ocurrió un error inesperado: {error}")
+        else:
+            print("Opción inválida. Por favor ingrese un número del menú.")
+
+
+if __name__ == "__main__":
+    main()

@@ -117,6 +117,7 @@ def validar_email(email):
     patron = r"^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$"
     return re.match(patron, email) is not None
 
+
 def pedir_entero(mensaje, minimo=None, maximo=None):
     """Pide un número entero por consola, repite hasta obtener uno válido."""
     
@@ -321,116 +322,145 @@ def listar_cursos():
     _ = input("\nPresione enter para volver...") 
 
 
-def seleccionar_curso_existente():
+def pedir_curso():
     """Pide un código de curso y valida que exista. Devuelve el código o None."""
     
     if not cursos:
         print("INFO: No hay cursos registrados todavía.")
         return None
 
-    codigo = pedir_texto("Código del curso: ").upper()
+    while True:
+        codigo = pedir_texto("Código del curso: ").upper()
     
-    if codigo not in cursos:
-        print(f"No existe un curso con código {codigo}.")
-        return None
-    
-    return codigo
+        if codigo not in cursos:
+            print(f"ADVERTENCIA: No existe un curso con código {codigo}.")
+            
+            if not leer_confirmacion("Intentar de nuevo?"):
+                return None
+        else:
+            return cursos[codigo]
 
 
 # =======================================================================
 # GESTIÓN DE INSCRIPCIONES Y LISTA DE ESPERA
 # =======================================================================
 
-def inscribir_estudiante():
-    """Inscribe un estudiante a un curso, o lo agrega a la lista de espera
-    si el cupo está lleno."""
-    print("\n--- Inscripción a Curso ---")
-
-    if not estudiantes:
-        print("Primero debe haber estudiantes registrados.")
-        return
-
-    dni = pedir_dni("DNI del estudiante: ")
-    if dni not in estudiantes:
-        print("No existe un estudiante con ese DNI. Regístrelo primero.")
-        return
-
-    codigo = seleccionar_curso_existente()
-    if codigo is None:
-        return
-
-    curso = cursos[codigo]
+def esta_inscripto(dni, curso) -> bool:
+    """Comprueba si un estudiante ya se encuentra inscripto a un curso."""
 
     if dni in curso["inscriptos"]:
         print(f"El estudiante ya está inscripto en '{curso['nombre']}'.")
-        return
+        return True
+        
     if dni in curso["espera"]:
         print(f"El estudiante ya está en la lista de espera de '{curso['nombre']}'.")
-        return
+        return True
+    
+    return False
 
+def inscribir(dni, curso):
     if len(curso["inscriptos"]) < curso["cupo"]:
         curso["inscriptos"].append(dni)
-        guardar_datos()
-        print(f"Inscripción exitosa en '{curso['nombre']}'.")
+        print(f"INFO: Inscripción exitosa en '{curso['nombre']}'.")
     else:
         curso["espera"].append(dni)
-        guardar_datos()
-        posicion = len(curso["espera"])
-        print(f"Cupo lleno. El estudiante fue agregado a la lista de espera "
-              f"en la posición {posicion}.")
+        posicion = len(curso["espera"]) + 1
+        print(f"INFO: Cupo lleno. El estudiante fue agregado a la lista de espera "
+            f"en la posición {posicion}.")
+    
+    guardar_datos()
 
+def inscribir_estudiante():
+    """Inscribe un estudiante a un curso, o lo agrega a la lista de espera
+    si el cupo está lleno."""
+    
+    while True:
+        limpiar_pantalla()
+        print("--- Inscripción a Curso ---")
+
+        dni = pedir_dni()
+        if dni not in estudiantes:
+            print("ADVERTENCIA: DNI ingresado no corresponde a un estudiante registrado.")
+            
+            if not leer_confirmacion("Continuar inscribiendo?"):
+                return
+
+        curso = pedir_curso()
+        if curso is None:
+            return
+
+        if not esta_inscripto(dni, curso):
+            inscribir(dni, curso)
+
+        if not leer_confirmacion("Continuar inscribiendo?"):
+            break
 
 def dar_baja_inscripcion():
     """Da de baja a un estudiante de un curso. Si hay lista de espera,
     promueve automáticamente al primero de la lista."""
-    print("\n--- Baja de Inscripción ---")
+    
+    while True:
+        limpiar_pantalla()
+        print("--- Baja de Inscripción ---")
 
-    codigo = seleccionar_curso_existente()
-    if codigo is None:
-        return
+        curso = pedir_curso()
+        if curso is None:
+            return
+        
+        dni = pedir_dni(validar_si_esta_registrado=True)
+        
+        # NOTE: Al ser excluyentes los dos estados (inscripto y en espera), se elimina el elif
+        
+        # Caso 1: No está inscripto
+        if not (dni in curso["inscriptos"] or dni in curso["espera"]):
+            print("INFO: Ese estudiante no está inscripto ni en espera en este curso.")
+        
+        # Caso 2: La inscripción está aceptada
+        if dni in curso["inscriptos"]:
+            curso["inscriptos"].remove(dni)
+            print(f"INFO: Se dio de baja a {estudiantes[dni]['nombre']} de '{curso['nombre']}'.")
 
-    curso = cursos[codigo]
-    dni = pedir_dni("DNI del estudiante a dar de baja: ")
+            # TODO: Preguntar si desea promover automáticamente o manualmente
+            # Si hay lista de espera, se promueve automáticamente al primero
+            if len(curso["espera"]) > 0:
+                siguiente_dni = curso["espera"].pop(0)
+                curso["inscriptos"].append(siguiente_dni)
+                print(f"INFO: Se liberó un cupo: estudiante con DNI:{siguiente_dni} fue promovido automáticamente desde la lista de espera.")
+            
+            guardar_datos()
 
-    if dni in curso["inscriptos"]:
-        curso["inscriptos"].remove(dni)
-        print(f"Se dio de baja a {estudiantes[dni]['nombre']} de '{curso['nombre']}'.")
-
-        # Si hay lista de espera, se promueve automáticamente al primero
-        if curso["espera"]:
-            siguiente_dni = curso["espera"].pop(0)
-            curso["inscriptos"].append(siguiente_dni)
-            nombre_siguiente = estudiantes.get(siguiente_dni, {}).get(
-                "nombre", siguiente_dni)
-            print(f"Se liberó un cupo: {nombre_siguiente} fue promovido "
-                  f"automáticamente desde la lista de espera.")
-        guardar_datos()
-
-    elif dni in curso["espera"]:
-        curso["espera"].remove(dni)
-        guardar_datos()
-        print("El estudiante estaba en lista de espera y fue removido.")
-
-    else:
-        print("Ese estudiante no está inscripto ni en espera en este curso.")
-
+        # Caso 3: La inscripción está en espera
+        if dni in curso["espera"]:
+            curso["espera"].remove(dni)
+            guardar_datos()
+            print(f"INFO: El estudiante con DNI:{dni} fue removido de la lista de espera.")
+        
+        if not leer_confirmacion("Continuar dando de baja?"):
+            break
 
 def ver_lista_espera():
     """Muestra la lista de espera de un curso puntual."""
-    print("\n--- Lista de Espera ---")
-    codigo = seleccionar_curso_existente()
-    if codigo is None:
+    
+    limpiar_pantalla()
+    print("--- Lista de Espera ---")
+    
+    curso = pedir_curso()
+    if curso is None:
         return
 
-    curso = cursos[codigo]
-    if not curso["espera"]:
+    # Caso 1: Lista de espera vacía
+    if len(curso["espera"]) == 0:
         print(f"El curso '{curso['nombre']}' no tiene lista de espera.")
+        _ = input("\nPresione enter para volver...")
         return
-
+        
+    # Caso 2:
     print(f"Lista de espera de '{curso['nombre']}':")
     for posicion, dni in enumerate(curso["espera"], start=1):
         nombre = estudiantes.get(dni, {}).get("nombre", dni)
         print(f"  {posicion}. {nombre} (DNI: {dni})")
+    
+    _ = input("\nPresione enter para volver...")
 
 
 # =======================================================================

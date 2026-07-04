@@ -219,7 +219,7 @@ def pedir_dni(validar_si_esta_registrado = False) -> str:
         if validar_dni(dni):
             return dni
         
-        print("ADVERTENCIA: El DNI debe contener solo números (7 u 8 dígitos).")
+        print("ADVERTENCIA: El DNI debe contener solo números enteros de 8 dígitos.")
 
 
 def pedir_email(mensaje) -> str:
@@ -288,14 +288,23 @@ def listar_estudiantes():
         return
 
     # Caso 2: Hay estudiantes registrados, mostrar lista.
+    
+    # 2.a Encabezado de la tabla
+    print("╭──────┬───────────┬─────────────────────────┬───────────────────────────────╮")
+    print("│ Pos. │    DNI    │         Nombre          │             Email             │")
+    print("├──────┼───────────┼─────────────────────────┼───────────────────────────────┤")
+    
+    # 2.b Filas de estudiantes
     contador = 0
     for dni, estudiante in estudiantes.items():
         contador += 1
-        print(f"{contador}. DNI: {dni} | Nombre: {estudiante.nombre} | Email: {estudiante.email}")
+        
+        
+        print(f"│{contador:>6}│{dni:>11}│{estudiante.nombre:<25}│{estudiante.email:<31}│")
     
-    print("=" * 45)
+    # 2.c Pie de la  tabla
+    print("╰──────┴───────────┴─────────────────────────┴───────────────────────────────╯") 
     print(f"Total de estudiantes: {contador}")
-    print("=" * 45)
     _ = input("\nPresione enter para volver...")
 
 
@@ -382,14 +391,24 @@ def listar_cursos():
         return
 
     # Caso 2: Hay cursos registrados
+    
+    # 2.a encabezado de la tabla
+    print("╭────────┬─────────────────────────────────────────────┬──────┬───────┬───────┬────────┬─────────╮")
+    print("│ Código │                  Nombre                     │ Cupo │ Ocup. │ Disp. │ Estado │ En Esp. │")
+    print("├────────┼─────────────────────────────────────────────┼──────┼───────┼───────┼────────┼─────────┤")
+    
     for codigo, curso in cursos.items():
         ocupados = len(curso.inscriptos)
         disponibles = curso.cupo - ocupados
         en_espera = len(curso.espera)
-        
-        estado = "CUPO LLENO" if disponibles <= 0 else f"{disponibles} lugares libres"
-        
-        print(f"[{codigo}] {curso.nombre} | Cupo: {curso.cupo} | Inscriptos: {ocupados} | {estado} | En espera: {en_espera}")
+        nombre = curso.nombre[:43]
+
+        estado = "LLENO" if disponibles <= 0 else "LIBRE"
+
+        print(f"│ {codigo:>6} │ {nombre:<43} │ {curso.cupo:>4} │ {ocupados:>5} │ {disponibles:>5} │ {estado.center(6)} │ {en_espera:>7} │")
+    
+    # 2.b Pie de la tabla
+    print("╰────────┴─────────────────────────────────────────────┴──────┴───────┴───────┴────────┴─────────╯")
     
     _ = input("\nPresione enter para volver...") 
 
@@ -442,6 +461,7 @@ def inscribir_estudiante():
             
             if not leer_confirmacion("Continuar inscribiendo?"):
                 return
+            else: continue
 
         curso = pedir_curso()
         if curso is None:
@@ -466,7 +486,11 @@ def dar_baja_inscripcion():
         if curso is None:
             return
         
-        dni = pedir_dni(validar_si_esta_registrado=True)
+        dni = pedir_dni()
+        if dni not in estudiantes:
+            print(f"ADVERTENCIA: estudiante con {dni} no está registrado")
+            _ = input("\nPresione enter para volver...")
+            return
         
         # NOTE: Al ser excluyentes los dos estados (inscripto y en espera), se elimina el elif
         

@@ -235,7 +235,7 @@ def pedir_email(mensaje) -> str:
 def pedir_curso() -> Curso|None:
     """Pide un código de curso y valida que exista. Devuelve el código o None."""
     
-    if not cursos:
+    if len(cursos) == 0:
         print("INFO: No hay cursos registrados todavía.")
         return None
 
@@ -359,12 +359,7 @@ def registrar_curso():
         nombre = pedir_texto("Nombre del curso: ")
         cupo = pedir_entero("Cupo máximo de inscriptos: ", minimo=1)
 
-        cursos[codigo] = {
-            "nombre": nombre,
-            "cupo": cupo,
-            "inscriptos": [],
-            "espera": []
-        }
+        cursos[codigo] = Curso(nombre=nombre, cupo=cupo, inscriptos=[], espera=[])
         
         guardar_datos()
         print(f"Curso '{nombre}' ({codigo}) registrado con cupo para {cupo} personas.")
@@ -380,7 +375,7 @@ def listar_cursos():
     print("--- Listado de Cursos ---")
     
     # Caso 1: No hay cursos registrados
-    if not cursos:
+    if len(cursos) == 0:
         print("INFO: No hay cursos registrados.")
         _ = input("\nPresione enter para volver...")
         return
@@ -390,7 +385,9 @@ def listar_cursos():
         ocupados = len(curso.inscriptos)
         disponibles = curso.cupo - ocupados
         en_espera = len(curso.espera)
+        
         estado = "CUPO LLENO" if disponibles <= 0 else f"{disponibles} lugares libres"
+        
         print(f"[{codigo}] {curso.nombre} | Cupo: {curso.cupo} | Inscriptos: {ocupados} | {estado} | En espera: {en_espera}")
     
     _ = input("\nPresione enter para volver...") 
@@ -400,27 +397,30 @@ def listar_cursos():
 # GESTIÓN DE INSCRIPCIONES Y LISTA DE ESPERA
 # =======================================================================
 
-def esta_inscripto(dni, curso) -> bool:
+def esta_inscripto(dni, curso : Curso) -> bool:
     """Comprueba si un estudiante ya se encuentra inscripto a un curso."""
 
-    if dni in curso["inscriptos"]:
-        print(f"El estudiante ya está inscripto en '{curso['nombre']}'.")
+    if dni in curso.inscriptos:
+        print(f"El estudiante ya está inscripto en '{curso.nombre}'.")
         return True
         
-    if dni in curso["espera"]:
-        print(f"El estudiante ya está en la lista de espera de '{curso['nombre']}'.")
+    if dni in curso.espera:
+        print(f"El estudiante ya está en la lista de espera de '{curso.nombre}'.")
         return True
     
     return False
 
 
-def inscribir(dni, curso):
-    if len(curso["inscriptos"]) < curso["cupo"]:
-        curso["inscriptos"].append(dni)
-        print(f"INFO: Inscripción exitosa en '{curso['nombre']}'.")
+def inscribir(dni, curso : Curso):
+    # Caso 1: Hay cupos disponibles
+    if len(curso.inscriptos) < curso.cupo:
+        curso.inscriptos.append(dni)
+        print(f"INFO: Inscripción exitosa en '{curso.nombre}'.")
+    
+    # Caso 2: No hay cupos disponibles
     else:
-        curso["espera"].append(dni)
-        posicion = len(curso["espera"]) + 1
+        curso.espera.append(dni)
+        posicion = len(curso.espera) + 1
         print(f"INFO: Cupo lleno. El estudiante fue agregado a la lista de espera "
             f"en la posición {posicion}.")
     

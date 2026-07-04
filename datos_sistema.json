@@ -1,0 +1,161 @@
+{
+    "estudiantes": {
+        "41000001": {
+            "nombre": "Ana Pérez",
+            "email": "ana.perez@mail.com"
+        },
+        "41000002": {
+            "nombre": "Juan Gómez",
+            "email": "juan.gomez@mail.com"
+        },
+        "41000003": {
+            "nombre": "Carlos López",
+            "email": "clopez@mail.com"
+        },
+        "41000004": {
+            "nombre": "María Fernández",
+            "email": "maria.f@mail.com"
+        },
+        "41000005": {
+            "nombre": "Lucas Silva",
+            "email": "lucas.silva@mail.com"
+        },
+        "41000006": {
+            "nombre": "Sofia Martínez",
+            "email": "smartinez@mail.com"
+        },
+        "41000007": {
+            "nombre": "Micaela Torres",
+            "email": "mica.torres@mail.com"
+        },
+        "41000008": {
+            "nombre": "Mateo Romero",
+            "email": "mromero@mail.com"
+        },
+        "41000009": {
+            "nombre": "Valentina Sosa",
+            "email": "vsosa@mail.com"
+        },
+        "41000010": {
+            "nombre": "Franco Ruiz",
+            "email": "franco.ruiz@mail.com"
+        },
+        "41000011": {
+            "nombre": "Camila Díaz",
+            "email": "cdiaz@mail.com"
+        },
+        "41000012": {
+            "nombre": "Gastón Álvarez",
+            "email": "galvarez@mail.com"
+        },
+        "41000013": {
+            "nombre": "Florencia Castro",
+            "email": "flor.castro@mail.com"
+        },
+        "41000014": {
+            "nombre": "Joaquín Giménez",
+            "email": "jgimenez@mail.com"
+        },
+        "41000015": {
+            "nombre": "Julieta Medina",
+            "email": "jmedina@mail.com"
+        },
+        "41000016": {
+            "nombre": "Nicolás Herrera",
+            "email": "nicolas.h@mail.com"
+        },
+        "41000017": {
+            "nombre": "Lucía Aguirre",
+            "email": "laguirre@mail.com"
+        },
+        "41000018": {
+            "nombre": "Tomás Peralta",
+            "email": "tperalta@mail.com"
+        },
+        "41000019": {
+            "nombre": "Martina Benítez",
+            "email": "mbenitez@mail.com"
+        },
+        "41000020": {
+            "nombre": "Diego Quiroga",
+            "email": "dquiroga@mail.com"
+        }
+    },
+    "cursos": {
+        "PY101": {
+            "nombre": "Introducción a la Programación con Python",
+            "cupo": 10,
+            "inscriptos": [
+                "41000001",
+                "41000002",
+                "41000003"
+            ],
+            "espera": []
+        },
+        "C101": {
+            "nombre": "Programación de Sistemas en C",
+            "cupo": 5,
+            "inscriptos": [
+                "41000001",
+                "41000002",
+                "41000003",
+                "41000004",
+                "41000005"
+            ],
+            "espera": [
+                "41000006",
+                "41000007"
+            ]
+        },
+        "SO201": {
+            "nombre": "Laboratorio de Sistemas Operativos",
+            "cupo": 4,
+            "inscriptos": [
+                "41000008",
+                "41000009",
+                "41000010",
+                "41000011"
+            ],
+            "espera": [
+                "41000012"
+            ]
+        },
+        "AV301": {
+            "nombre": "Visualización Arquitectónica y Modelado",
+            "cupo": 10,
+            "inscriptos": [
+                "41000013",
+                "41000014",
+                "41000015",
+                "41000016"
+            ],
+            "espera": []
+        },
+        "LX401": {
+            "nombre": "Administración de Entornos Linux",
+            "cupo": 12,
+            "inscriptos": [
+                "41000017",
+                "41000018",
+                "41000019",
+                "41000020",
+                "41000001",
+                "41000002"
+            ],
+            "espera": []
+        },
+        "CMP501": {
+            "nombre": "Diseño y Construcción de Compiladores",
+            "cupo": 3,
+            "inscriptos": [
+                "41000003",
+                "41000004",
+                "41000005"
+            ],
+            "espera": [
+                "41000008",
+                "41000009"
+            ]
+        }
+    }
+}

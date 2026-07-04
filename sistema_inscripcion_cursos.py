@@ -160,12 +160,13 @@ def guardar_datos():
 # =======================================================================
 
 def validar_dni(dni):
-    """Un DNI válido: solo dígitos, entre 7 y 8 caracteres."""
-    return dni.isdecimal() and (7 <= len(dni) <= 8)
+    """Un DNI válido: solo dígitos con 8 caracteres."""
+    return dni.isdecimal() and len(dni) == 8
 
 
 def validar_email(email):
     """Validación básica de formato de email con expresión regular."""
+    
     # NOTE: expresión regular? 
     patron = r"^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$"
     return re.match(patron, email) is not None
@@ -677,7 +678,7 @@ def main():
     
     while True:
         mostrar_menu()
-        opcion = input("Seleccione una opción: ").strip()
+        opcion = input("Seleccione una opción: ").strip().upper()
         ejecutar_operacion(opcion)
 
 

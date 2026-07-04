@@ -29,10 +29,13 @@ Se puede visualizar el funcionamiento completo del sistema a través del siguien
 
 Durante el desarrollo de este proyecto se utilizó Claude (Anthropic) como asistente de IA. Su uso incluyó:
 
-* ***Para qué***: apoyar el diseño de la estructura general del sistema (organización de funciones, manejo de cupos y listas de espera) y la revisión de validaciones de datos (DNI, email, enteros).
+* ***Para qué***: apoyar el diseño de la estructura general del sistema (organización de funciones, manejo de cupos y listas de espera) y la revisión de validaciones de datos (DNI, email, enteros). Para generar el archivo 'datos_sistema.json' como registro base para el sistema.
 
 * ***Cómo***: se le solicitó generar una primera versión del código siguiendo la consigna de la cátedra, la cual luego fue revisada, probada y ajustada por el grupo. También se usó para verificar que el programa no presentara errores de ejecución mediante pruebas manuales de los distintos flujos del menú.
 
+## Requisitos
+
+* Tener instalado Python 3.8 o superior.
 
 ## Ejecutar localmente
 

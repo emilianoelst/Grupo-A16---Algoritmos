@@ -17,6 +17,33 @@ import re
 
 RUTA_ARCHIVO_DATOS = "datos_sistema.json"
 
+def limpiar_pantalla():
+  """
+  Limpia la terminal
+  """
+  
+  try:
+    comando = "cls" if os.name == "nt" else "clear"
+    resultado = os.system(comando)
+    
+    if resultado != 0:
+      raise RuntimeError("Comando no disponible")
+  except Exception:
+    sys.stdout.write("\033[H\033[2J")
+    sys.stdout.flush()
+
+
+def leer_confirmacion(etiqueta : str) -> bool:
+  """
+  Espera una confirmación del usuario.
+  """
+  while True:
+    entrada = input(f"{etiqueta} (S, n): ").strip().lower()
+    
+    if entrada in ["s", "n", ""]:
+      return entrada != "n"
+
+
 # ---------------------------------------------------------------------
 # Estructuras de datos principales (se cargan/guardan en el JSON)
 #
@@ -81,8 +108,7 @@ def guardar_datos():
 
 def validar_dni(dni):
     """Un DNI válido: solo dígitos, entre 7 y 8 caracteres."""
-    # NOTE: isdigit() es inseguro para comprobar el dni, se debe usar isdecimal(). Se debe intentar convertirlo a int con try-except
-    return dni.isdigit() and 7 <= len(dni) <= 8
+    return dni.isdecimal() and (7 <= len(dni) <= 8)
 
 
 def validar_email(email):
@@ -90,12 +116,6 @@ def validar_email(email):
     # NOTE: expresión regular? 
     patron = r"^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$"
     return re.match(patron, email) is not None
-
-
-def validar_texto_no_vacio(texto):
-    """Verifica que el texto no esté vacío ni sea solo espacios."""
-    return len(texto.strip()) > 0
-
 
 def pedir_entero(mensaje, minimo=None):
     """Pide un número entero por consola, repite hasta obtener uno válido."""
@@ -115,27 +135,35 @@ def pedir_texto(mensaje):
     """Pide un texto no vacío por consola."""
     while True:
         texto = input(mensaje).strip()
-        if validar_texto_no_vacio(texto):
+        if len(texto) != 0:
             return texto
-        print("Error: el campo no puede estar vacío.")
+        print("ADVERTENCIA: El campo no puede estar vacío.")
 
 
-def pedir_dni(mensaje):
+def pedir_dni(validar_si_esta_registrado = False):
     """Pide un DNI válido por consola."""
     while True:
-        dni = input(mensaje).strip()
+        dni = input("DNI: ").strip()
+        
+        if validar_si_esta_registrado and dni in estudiantes:
+            print(f"ADVERTENCIA: Ya existe un estudiante registrado con DNI {dni} ({estudiantes[dni]['nombre']}).")
+            continue
+        
         if validar_dni(dni):
             return dni
-        print("Error: el DNI debe contener solo números (7 u 8 dígitos).")
+        
+        print("ADVERTENCIA: El DNI debe contener solo números (7 u 8 dígitos).")
 
 
 def pedir_email(mensaje):
     """Pide un email válido por consola."""
     while True:
         email = input(mensaje).strip()
+        
         if validar_email(email):
             return email
-        print("Error: formato de email inválido (ejemplo: nombre@dominio.com).")
+        
+        print("ADVERTENCIA: formato de email inválido (ejemplo: nombre@dominio.com).")
 
 
 # =======================================================================
@@ -144,64 +172,85 @@ def pedir_email(mensaje):
 
 def registrar_estudiante():
     """Registra un nuevo estudiante en el sistema."""
-    print("\n--- Registro de Estudiante ---")
-    dni = pedir_dni("DNI del estudiante: ")
+    while True:
+        limpiar_pantalla()
+        
+        print("\n--- Registro de Estudiante ---")
+        
+        dni = pedir_dni(validar_si_esta_registrado=True)
+        nombre = pedir_texto("Nombre y apellido: ")
+        email = pedir_email("Email: ")
 
-    if dni in estudiantes:
-        print(f"Ya existe un estudiante registrado con DNI {dni} "
-              f"({estudiantes[dni]['nombre']}).")
-        return
-
-    nombre = pedir_texto("Nombre y apellido: ")
-    email = pedir_email("Email: ")
-
-    estudiantes[dni] = {"nombre": nombre, "email": email}
-    guardar_datos()
-    print(f"Estudiante '{nombre}' registrado con éxito (DNI: {dni}).")
+        estudiantes[dni] = {"nombre": nombre, "email": email}
+        guardar_datos()
+        print(f"Estudiante '{nombre}' registrado con éxito (DNI: {dni}).")
+        
+        if not leer_confirmacion("Registrar otro estudiante?"):
+            return
 
 
 def listar_estudiantes():
     """Muestra todos los estudiantes registrados."""
-    print("\n--- Listado de Estudiantes ---")
+    limpiar_pantalla()
+    
+    print(" Listado de Estudiantes ".center(45, "="))
+    
+    # Caso 1: No hay estudiantes registrados
     if not estudiantes:
         print("No hay estudiantes registrados.")
+        _ = input("\nPresione enter para volver...")
         return
 
+    # Caso 2: 
     contador = 0
     for dni, datos in estudiantes.items():
         contador += 1
         print(f"{contador}. DNI: {dni} | Nombre: {datos['nombre']} "
               f"| Email: {datos['email']}")
+    
+    print("=" * 45)
     print(f"Total de estudiantes: {contador}")
+    print("=" * 45)
+    _ = input("\nPresione enter para volver...")
 
 
 def buscar_estudiante_interactivo():
     """Busca un estudiante por DNI y muestra sus datos e inscripciones."""
-    print("\n--- Buscar Estudiante ---")
-    dni = pedir_dni("Ingrese el DNI a buscar: ")
+    
+    while True:
+        limpiar_pantalla()
+        print("--- Buscar Estudiante ---\n")
+        dni = pedir_dni()
+        
+        # Caso 1: El estudiante no está registrado.
+        if dni not in estudiantes:
+            print("INFO: No se encontró ningún estudiante con ese DNI.")
+            if leer_confirmacion("Buscar otra vez?"):
+                continue
+            return
+        
+        # Caso 2: Estudiante está registrado.
+        datos = estudiantes[dni]
+        print(f"Nombre: {datos['nombre']} | Email: {datos['email']}")
 
-    if dni not in estudiantes:
-        print("No se encontró ningún estudiante con ese DNI.")
-        return
+        cursos_inscripto = []
+        cursos_en_espera = []
+        for codigo, curso in cursos.items():
+            if dni in curso["inscriptos"]:
+                cursos_inscripto.append(curso["nombre"])
+            if dni in curso["espera"]:
+                cursos_en_espera.append(curso["nombre"])
 
-    datos = estudiantes[dni]
-    print(f"Nombre: {datos['nombre']} | Email: {datos['email']}")
+        if cursos_inscripto:
+            print("Cursos inscripto:", ", ".join(cursos_inscripto))
+        else:
+            print("No tiene inscripciones activas.")
 
-    cursos_inscripto = []
-    cursos_en_espera = []
-    for codigo, curso in cursos.items():
-        if dni in curso["inscriptos"]:
-            cursos_inscripto.append(curso["nombre"])
-        if dni in curso["espera"]:
-            cursos_en_espera.append(curso["nombre"])
-
-    if cursos_inscripto:
-        print("Cursos inscripto:", ", ".join(cursos_inscripto))
-    else:
-        print("No tiene inscripciones activas.")
-
-    if cursos_en_espera:
-        print("En lista de espera de:", ", ".join(cursos_en_espera))
+        if cursos_en_espera:
+            print("En lista de espera de:", ", ".join(cursos_en_espera))
+            
+        if not leer_confirmacion("Buscar otra vez?"):
+            return
 
 
 # =======================================================================
@@ -408,30 +457,6 @@ def mostrar_estadisticas():
 # =======================================================================
 # MENÚ PRINCIPAL
 # =======================================================================
-def limpiar_pantalla():
-  """
-  Limpia la terminal
-  """
-  
-  try:
-    comando = "cls" if os.name == "nt" else "clear"
-    resultado = os.system(comando)
-    
-    if resultado != 0:
-      raise RuntimeError("Comando no disponible")
-  except Exception:
-    sys.stdout.write("\033[H\033[2J")
-    sys.stdout.flush()
-
-def leer_confirmacion(etiqueta : str) -> bool:
-  """
-  Espera una confirmación del usuario.
-  """
-  while True:
-    entrada = input(f"{etiqueta} (S, n): ").strip().lower()
-    
-    if entrada in ["s", "n", ""]:
-      return entrada != "n"
 
 def salir():
     guardar_datos()

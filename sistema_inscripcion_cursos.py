@@ -32,7 +32,6 @@ def limpiar_pantalla():
     sys.stdout.write("\033[H\033[2J")
     sys.stdout.flush()
 
-
 def leer_confirmacion(etiqueta : str) -> bool:
   """
   Espera una confirmación del usuario.
@@ -358,6 +357,7 @@ def esta_inscripto(dni, curso) -> bool:
     
     return False
 
+
 def inscribir(dni, curso):
     if len(curso["inscriptos"]) < curso["cupo"]:
         curso["inscriptos"].append(dni)
@@ -369,6 +369,7 @@ def inscribir(dni, curso):
             f"en la posición {posicion}.")
     
     guardar_datos()
+
 
 def inscribir_estudiante():
     """Inscribe un estudiante a un curso, o lo agrega a la lista de espera
@@ -394,6 +395,7 @@ def inscribir_estudiante():
 
         if not leer_confirmacion("Continuar inscribiendo?"):
             break
+
 
 def dar_baja_inscripcion():
     """Da de baja a un estudiante de un curso. Si hay lista de espera,
@@ -438,6 +440,7 @@ def dar_baja_inscripcion():
         if not leer_confirmacion("Continuar dando de baja?"):
             break
 
+
 def ver_lista_espera():
     """Muestra la lista de espera de un curso puntual."""
     
@@ -470,11 +473,13 @@ def ver_lista_espera():
 def mostrar_estadisticas():
     """Calcula y muestra estadísticas generales del sistema usando
     acumuladores y contadores."""
-    print("\n--- Estadísticas del Sistema ---")
+    
+    limpiar_pantalla()
+    print("--- Estadísticas del Sistema ---")
 
-    if not cursos:
-        print("No hay cursos registrados todavía.")
-        return
+    if len(cursos) == 0:
+        print("INFO: No hay cursos registrados todavía.")
+        _ = input("\nPresione enter para volver...")
 
     total_cursos = 0
     total_inscriptos = 0          # acumulador de inscripciones totales
@@ -511,15 +516,51 @@ def mostrar_estadisticas():
     if curso_mas_demandado is not None and max_demanda > 0:
         print(f"Curso con mayor demanda: '{curso_mas_demandado}' "
               f"({max_demanda} personas entre inscriptos y en espera)")
+        
+    _ = input("\nPresione enter para volver...")
 
 
 # =======================================================================
 # MENÚ PRINCIPAL
 # =======================================================================
 
+def acerca_de():
+  """
+  Imprime en pantalla sobre el programa y los integrantes del grupo.
+  """
+  limpiar_pantalla()
+  
+  ascii_art_grupo= """
+ ▄▄▄▄▄▄▄ ▄▄▄▄ ▄▄▄     
+█       █    █   █    
+█   ▄   ██   █   █▄▄▄ 
+█  █▄█  ██   █    ▄  █
+█       ██   █   █ █ █
+█   ▄   ██   █   █▄█ █
+█▄▄█ █▄▄██▄▄▄█▄▄▄▄▄▄▄█
+  """
+  
+  print(ascii_art_grupo)
+  print("\033[1mSISTEMA DE INSCRIPCIÓN A CURSOS\033[0m")
+  
+  print("\nIntegrantes Grupo A16: ")
+  print("• Enzo Solis")
+  print("• Emiliano Elst")
+  print("• Jussara Aylen Pablo Sandoval")
+  print("• Vanesa Rocío Pereyra Aponte")
+  print("• Aixa Geraldine Silva")
+  
+  print("\nAlgoritmos y Estructura de Datos")
+  print("Ingeniería en Sistemas de Información")
+  print("UTN FRRE\n2026")
+  
+  _ = input("\nPresione enter para volver...")
+
+
 def salir():
     guardar_datos()
     print("INFO: Datos guardados. Saliendo del programa...")
+
 
 def mostrar_menu():
     """Imprime en pantalla las operaciones disponibles."""
@@ -527,17 +568,19 @@ def mostrar_menu():
     print("=" * 45)
     print(" SISTEMA DE INSCRIPCIÓN A CURSOS Y TALLERES")
     print("=" * 45)
-    print("1. Registrar estudiante")
-    print("2. Listar estudiantes")
-    print("3. Buscar estudiante")
-    print("4. Registrar curso")
-    print("5. Listar cursos y cupos")
-    print("6. Inscribir estudiante a curso")
-    print("7. Dar de baja una inscripción")
-    print("8. Ver lista de espera de un curso")
-    print("9. Ver estadísticas")
-    print("0. Salir")
+    print(" 1. Registrar estudiante")
+    print(" 2. Listar estudiantes")
+    print(" 3. Buscar estudiante")
+    print(" 4. Registrar curso")
+    print(" 5. Listar cursos y cupos")
+    print(" 6. Inscribir estudiante a curso")
+    print(" 7. Dar de baja una inscripción")
+    print(" 8. Ver lista de espera de un curso")
+    print(" 9. Ver estadísticas")
+    print("10. Acerca de")
+    print(" 0. Salir")
     print("=" * 45)
+
 
 def ejecutar_operacion(opcion):
     """Ejecuta una operación del sistema según la opción."""
@@ -553,7 +596,8 @@ def ejecutar_operacion(opcion):
         "6": inscribir_estudiante,
         "7": dar_baja_inscripcion,
         "8": ver_lista_espera,
-        "9": mostrar_estadisticas
+        "9": mostrar_estadisticas,
+        "10": acerca_de
     }
     
     if not opcion in operaciones:

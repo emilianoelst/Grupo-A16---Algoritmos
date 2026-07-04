@@ -79,6 +79,14 @@
         "41000020": {
             "nombre": "Diego Quiroga",
             "email": "dquiroga@mail.com"
+        },
+        "46000100": {
+            "nombre": "Juan P. Martinez",
+            "email": "juanpmartinez@mail.com"
+        },
+        "47000560": {
+            "nombre": "Pedro Torres",
+            "email": "pedro@mail.com"
         }
     },
     "cursos": {
@@ -97,13 +105,12 @@
             "cupo": 5,
             "inscriptos": [
                 "41000001",
-                "41000002",
                 "41000003",
                 "41000004",
-                "41000005"
+                "41000005",
+                "41000006"
             ],
             "espera": [
-                "41000006",
                 "41000007"
             ]
         },
@@ -156,6 +163,20 @@
                 "41000008",
                 "41000009"
             ]
+        },
+        "ARD101": {
+            "nombre": "Introducción a la Robótica con Arduino",
+            "cupo": 15,
+            "inscriptos": [
+                "41000002"
+            ],
+            "espera": []
+        },
+        "JAV401": {
+            "nombre": "Javascript para Web IoT",
+            "cupo": 25,
+            "inscriptos": [],
+            "espera": []
         }
     }
 }

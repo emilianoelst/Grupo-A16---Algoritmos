@@ -117,18 +117,26 @@ def validar_email(email):
     patron = r"^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$"
     return re.match(patron, email) is not None
 
-def pedir_entero(mensaje, minimo=None):
+def pedir_entero(mensaje, minimo=None, maximo=None):
     """Pide un número entero por consola, repite hasta obtener uno válido."""
+    
     while True:
         entrada = input(mensaje).strip()
         try:
             numero = int(entrada)
+            
             if minimo is not None and numero < minimo:
-                print(f"El valor debe ser mayor o igual a {minimo}.")
+                print(f"ADVERTENCIA: el número ingresado fuera de rango. El valor debe ser mayor o igual a {minimo}.")
                 continue
+            
+            if maximo is not None and numero > maximo:
+                print(f"ADVERTENCIA: el número ingresado fuera de rango. El valor ingresado debe ser menor o igual a {maximo}.")
+                continue
+            
             return numero
+        
         except ValueError:
-            print("Error: debe ingresar un número entero válido.")
+            print("ERROR: debe ingresar un número entero válido.")
 
 
 def pedir_texto(mensaje):
@@ -259,33 +267,49 @@ def buscar_estudiante_interactivo():
 
 def registrar_curso():
     """Registra un nuevo curso con su cupo máximo."""
-    print("\n--- Registro de Curso ---")
-    codigo = pedir_texto("Código del curso (ej: PY101): ").upper()
+    
+    while True:
+        limpiar_pantalla()
+        print("--- Registro de Curso ---\n")
+        codigo = pedir_texto("Código del curso (ej: PY101): ").upper()
 
-    if codigo in cursos:
-        print(f"Ya existe un curso con el código {codigo}.")
-        return
+        # Caso 1: El código no está disponible.
+        if codigo in cursos:
+            print(f"Ya existe un curso con el código {codigo}.")
+            if not leer_confirmacion("Intentar con otro código?"):
+                return
 
-    nombre = pedir_texto("Nombre del curso: ")
-    cupo = pedir_entero("Cupo máximo de inscriptos: ", minimo=1)
+        # Caso 2: El código está disponible.
+        nombre = pedir_texto("Nombre del curso: ")
+        cupo = pedir_entero("Cupo máximo de inscriptos: ", minimo=1)
 
-    cursos[codigo] = {
-        "nombre": nombre,
-        "cupo": cupo,
-        "inscriptos": [],
-        "espera": []
-    }
-    guardar_datos()
-    print(f"Curso '{nombre}' ({codigo}) registrado con cupo para {cupo} personas.")
+        cursos[codigo] = {
+            "nombre": nombre,
+            "cupo": cupo,
+            "inscriptos": [],
+            "espera": []
+        }
+        
+        guardar_datos()
+        print(f"Curso '{nombre}' ({codigo}) registrado con cupo para {cupo} personas.")
+        
+        if not leer_confirmacion("Registrar otro curso?"):
+            return
 
 
 def listar_cursos():
     """Muestra todos los cursos con su ocupación de cupos."""
-    print("\n--- Listado de Cursos ---")
+    
+    limpiar_pantalla()
+    print("--- Listado de Cursos ---")
+    
+    # Caso 1: No hay cursos registrados
     if not cursos:
-        print("No hay cursos registrados.")
+        print("INFO: No hay cursos registrados.")
+        _ = input("\nPresione enter para volver...")
         return
 
+    # Caso 2: Hay cursos registrados
     for codigo, curso in cursos.items():
         ocupados = len(curso["inscriptos"])
         disponibles = curso["cupo"] - ocupados
@@ -293,18 +317,23 @@ def listar_cursos():
         estado = "CUPO LLENO" if disponibles <= 0 else f"{disponibles} lugares libres"
         print(f"[{codigo}] {curso['nombre']} | Cupo: {curso['cupo']} "
               f"| Inscriptos: {ocupados} | {estado} | En espera: {en_espera}")
+    
+    _ = input("\nPresione enter para volver...") 
 
 
 def seleccionar_curso_existente():
     """Pide un código de curso y valida que exista. Devuelve el código o None."""
+    
     if not cursos:
-        print("No hay cursos registrados todavía.")
+        print("INFO: No hay cursos registrados todavía.")
         return None
 
     codigo = pedir_texto("Código del curso: ").upper()
+    
     if codigo not in cursos:
         print(f"No existe un curso con código {codigo}.")
         return None
+    
     return codigo
 
 

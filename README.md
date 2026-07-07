@@ -1,4 +1,4 @@
-![Logo](./utn_frre_logo.png)
+![Logo](./docs/utn_frre_logo.png)
 
 # Sistema de Inscripción a Cursos
 
@@ -23,7 +23,9 @@ El código está modularizado en funciones (una por cada operación: validación
 
 ### Demostración Prática:
 
-Se puede visualizar el funcionamiento completo del sistema a través del siguiente [video demostrativo]().
+Se puede visualizar el funcionamiento completo del sistema a través del siguiente video demostrativo.
+
+[![Video Demostrativo](https://img.youtube.com/vi/A0M79LBIUa4/2.jpg)](https://youtu.be/A0M79LBIUa4)
 
 ## Uso de Inteligencia Artificial:
 
@@ -48,7 +50,7 @@ Clona el proyecto
 Ve al directorio del proyecto
 
 ```bash
-  cd Grupo-A16---Algoritmos
+  cd Grupo-A16---Algoritmos/src
 ```
 
 Ejecutar el programa

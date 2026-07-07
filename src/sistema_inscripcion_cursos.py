@@ -14,6 +14,7 @@ import json
 import os
 import sys
 import re
+import shutil
 from dataclasses import dataclass, asdict
 
 # Utilidades
@@ -93,7 +94,34 @@ class Curso:
 #     ...
 # }
 # =======================================================================
-RUTA_ARCHIVO_DATOS = "datos_sistema.json"
+def resolver_ruta_datos(ruta_relativa : str) -> str:
+    """Obtiene la ruta absoluta para recursos, compatible con PyInstaller"""
+    
+    # 1. Ruta externa (donde el usuario ejecuta el programa y donde se guardarán los cambios)
+    if hasattr(sys, "_MEIPASS"):
+        directorio_ejecutable = os.path.dirname(sys.executable)
+    else:
+        directorio_ejecutable = os.path.dirname(os.path.abspath(__file__))
+    
+    ruta_datos_absoluta = os.path.join(directorio_ejecutable, ruta_relativa)
+    
+    # Si el archivo existe fuera, lo usamos (tiene los datos actualizados)
+    if os.path.exists(ruta_datos_absoluta):
+        return ruta_datos_absoluta
+    
+    # 2. Si no existe fuera, buscamos los datos base dentro del ejecutable
+    if hasattr(sys, "_MEIPASS"):
+        ruta_base = os.path.join(sys._MEIPASS, ruta_relativa) #type:ignore
+    else:
+        ruta_base = ruta_datos_absoluta
+    
+    # 3. Copiamos los datos base hacia afuera para que sea modificable
+    if os.path.exists(ruta_base):
+        shutil.copy(ruta_base, ruta_datos_absoluta)
+    
+    return ruta_datos_absoluta
+
+RUTA_ARCHIVO_DATOS = resolver_ruta_datos("datos_sistema.json")
 
 estudiantes : dict[str, Estudiante] = {}
 cursos : dict[str, Curso] = {}
